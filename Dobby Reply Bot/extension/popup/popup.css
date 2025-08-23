@@ -1,0 +1,132 @@
+body {
+    width: 350px;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #15202b;
+    color: #ffffff;
+}
+
+.popup-container {
+    padding: 20px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #38444d;
+    padding-bottom: 15px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 18px;
+    color: #1da1f2;
+}
+
+.api-section {
+    margin-bottom: 20px;
+}
+
+.api-section label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.api-section input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #38444d;
+    border-radius: 6px;
+    background: #192734;
+    color: #ffffff;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.api-section input:focus {
+    outline: none;
+    border-color: #1da1f2;
+}
+
+.api-section button {
+    margin-top: 10px;
+    width: 100%;
+    padding: 10px;
+    background: #1da1f2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.api-section button:hover {
+    background: #1991db;
+}
+
+.status-section {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #192734;
+    border-radius: 6px;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.status-dot.online {
+    background: #17bf63;
+}
+
+.status-dot.offline {
+    background: #f45d22;
+}
+
+.info-section {
+    margin-bottom: 20px;
+    font-size: 12px;
+    color: #8b98a5;
+}
+
+.info-section a {
+    color: #1da1f2;
+    text-decoration: none;
+}
+
+.stats-section {
+    border-top: 1px solid #38444d;
+    padding-top: 15px;
+}
+
+.stats-section h3 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+}
+
+.stats-section p {
+    margin: 5px 0;
+    font-size: 12px;
+}
+
+.stats-section button {
+    padding: 6px 12px;
+    background: #192734;
+    border: 1px solid #38444d;
+    color: #ffffff;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.stats-section button:hover {
+    background: #22303c;
+}

@@ -1,0 +1,51 @@
+/* Dobby button styles */
+.dobby-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 20px;
+    color: white;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 8px;
+    padding: 6px 12px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.dobby-button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.dobby-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.dobby-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+/* Container for buttons */
+.dobby-container {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+}
+
+/* Animation for button state changes */
+@keyframes dobby-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.dobby-button:disabled {
+    animation: dobby-pulse 1.5s infinite;
+}

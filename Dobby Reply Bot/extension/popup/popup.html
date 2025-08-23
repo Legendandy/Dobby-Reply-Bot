@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div class="popup-container">
+        <div class="header">
+            <h1>🧙‍♂️ Dobby Settings</h1>
+        </div>
+        
+        <div class="content">
+            <div class="api-section">
+                <label for="api-key">Fireworks API Key:</label>
+                <input type="password" id="api-key" placeholder="Enter your API key">
+                <button id="save-key">Save</button>
+            </div>
+            
+            <div class="status-section">
+                <div id="status-indicator" class="status-dot offline"></div>
+                <span id="status-text">Not configured</span>
+            </div>
+            
+            <div class="info-section">
+                <p>Get your API key from <a href="https://fireworks.ai" target="_blank">fireworks.ai</a></p>
+                <p>Dobby will help you craft perfect Twitter replies!</p>
+            </div>
+            
+            <div class="stats-section">
+                <h3>Usage Stats</h3>
+                <p>Replies generated: <span id="reply-count">0</span></p>
+                <button id="reset-stats">Reset</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>

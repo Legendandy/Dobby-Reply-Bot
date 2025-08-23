@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "Dobby - AI Twitter Replies",
+  "version": "1.0.0",
+  "description": "Dobby helps you craft perfect Twitter replies with AI",
+  
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  
+  "host_permissions": [
+    "https://twitter.com/*",
+    "https://x.com/*",
+    "https://dobby-backend-five.vercel.app/*"
+  ],
+  
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["https://twitter.com/*", "https://x.com/*"],
+      "js": ["content-scripts/twitter-injector.js"],
+      "css": ["styles/dobby-styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Dobby Settings"
+  },
+  
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*", "styles/*"],
+      "matches": ["https://twitter.com/*", "https://x.com/*"]
+    }
+  ]
+}
