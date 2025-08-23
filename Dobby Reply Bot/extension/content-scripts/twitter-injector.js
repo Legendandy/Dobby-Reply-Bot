@@ -105,7 +105,7 @@ class DobbyTwitter {
   createDobbyButton(editable, tweetContent) {
     const button = document.createElement('button');
     button.className = 'dobby-button';
-    button.innerHTML = 'Reply With Dobby';
+    button.innerHTML = 'Generate reply with Dobby';
     button.title = 'Generate AI reply with Dobby';
     button.style.cssText = `
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -168,9 +168,11 @@ class DobbyTwitter {
     for (let article of document.querySelectorAll('article[data-testid="tweet"]')) {
       if (article.contains(editable)) continue;
       const tweetText = article.querySelector('[data-testid="tweetText"]');
-      if (tweetText && tweetText.textContent.trim()) {
-        const text = tweetText.textContent.trim();
-        if (!text.startsWith('Replying to') && !text.startsWith('@') && text.length > 10) return text;
+      if (tweetText) {
+        const cleanText = this.extractCleanText(tweetText);
+        if (cleanText && !cleanText.startsWith('Replying to') && !cleanText.startsWith('@') && cleanText.length > 10) {
+          return cleanText;
+        }
       }
     }
     return null;
@@ -181,14 +183,15 @@ class DobbyTwitter {
       attempts = 0;
     while (current && attempts < 20) {
       for (let tweetElement of current.querySelectorAll('[data-testid="tweetText"]')) {
-        const text = tweetElement.textContent.trim();
+        const cleanText = this.extractCleanText(tweetElement);
         if (
-          !text.startsWith('Replying to') &&
-          !text.startsWith('Show this thread') &&
-          text.length > 15 &&
-          !text.includes('·')
+          cleanText &&
+          !cleanText.startsWith('Replying to') &&
+          !cleanText.startsWith('Show this thread') &&
+          cleanText.length > 15 &&
+          !cleanText.includes('·')
         ) {
-          return text;
+          return cleanText;
         }
       }
       current = current.parentElement;
@@ -199,19 +202,119 @@ class DobbyTwitter {
 
   findAnyTweetContent() {
     for (let tweetElement of document.querySelectorAll('[data-testid="tweetText"]')) {
-      const text = tweetElement.textContent.trim();
+      const cleanText = this.extractCleanText(tweetElement);
       if (
-        text.length > 20 &&
-        !text.startsWith('Replying to') &&
-        !text.startsWith('Show this thread') &&
-        !text.includes('ago') &&
-        !text.includes('·') &&
-        !text.match(/^\d+[hms]$/)
+        cleanText &&
+        cleanText.length > 20 &&
+        !cleanText.startsWith('Replying to') &&
+        !cleanText.startsWith('Show this thread') &&
+        !cleanText.includes('ago') &&
+        !cleanText.includes('·') &&
+        !cleanText.match(/^\d+[hms]$/)
       ) {
-        return text;
+        return cleanText;
       }
     }
     return null;
+  }
+
+  // NEW: Extract only text content, ignore images, links, and media
+  extractCleanText(tweetElement) {
+    if (!tweetElement) return null;
+    
+    // Clone the element so we don't modify the original
+    const clone = tweetElement.cloneNode(true);
+    
+    // Remove all image-related elements
+    const imagesToRemove = [
+      'img',                                    // Direct images
+      '[data-testid="tweetPhoto"]',            // Tweet photos
+      '[data-testid="card.layoutLarge.media"]', // Card media
+      '[data-testid="card.layoutSmall.media"]', // Small card media
+      '[role="img"]',                          // Icon images
+      '.r-1p0dtai',                           // Twitter image classes
+      '.r-1niwhzg',                           // More Twitter image classes
+      'svg',                                   // SVG icons
+      '[aria-label*="Image"]',                // Elements with image aria-labels
+      '[alt]'                                 // Elements with alt text (likely images)
+    ];
+    
+    imagesToRemove.forEach(selector => {
+      clone.querySelectorAll(selector).forEach(el => el.remove());
+    });
+    
+    // Remove link URLs but keep link text
+    clone.querySelectorAll('a').forEach(link => {
+      const linkText = link.textContent.trim();
+      // If it's just a URL, remove it entirely
+      if (this.isUrl(linkText)) {
+        link.remove();
+      } else {
+        // Keep the text but remove the link wrapper
+        const textNode = document.createTextNode(linkText);
+        link.parentNode.replaceChild(textNode, link);
+      }
+    });
+    
+    // Remove elements that typically contain media or URLs
+    const mediaSelectors = [
+      '[data-testid*="media"]',
+      '[data-testid*="video"]',
+      '[data-testid*="photo"]',
+      '.css-1dbjc4n[style*="background-image"]', // Background image containers
+      '[href*="pic.twitter.com"]',              // Twitter image links
+      '[href*="t.co"]'                          // Shortened URLs
+    ];
+    
+    mediaSelectors.forEach(selector => {
+      clone.querySelectorAll(selector).forEach(el => el.remove());
+    });
+    
+    // Get the cleaned text
+    let cleanText = clone.textContent || clone.innerText || '';
+    
+    // Clean up the text
+    cleanText = cleanText
+      .trim()
+      .replace(/\s+/g, ' ')                    // Replace multiple spaces with single space
+      .replace(/pic\.twitter\.com\/\w+/g, '')  // Remove pic.twitter.com links
+      .replace(/https?:\/\/t\.co\/\w+/g, '')   // Remove t.co links
+      .replace(/https?:\/\/[^\s]+/g, '')       // Remove any other URLs
+      .trim();
+    
+    // Return null if text is too short or only contains non-meaningful content
+    if (cleanText.length < 3 || this.isOnlyUrlsOrMentions(cleanText)) {
+      return null;
+    }
+    
+    return cleanText;
+  }
+  
+  // Helper: Check if string is a URL
+  isUrl(str) {
+    try {
+      return str.match(/^https?:\/\//) || 
+             str.match(/^www\./) || 
+             str.match(/pic\.twitter\.com/) ||
+             str.match(/t\.co\//) ||
+             str.includes('.com') ||
+             str.includes('.org') ||
+             str.includes('.net');
+    } catch (e) {
+      return false;
+    }
+  }
+  
+  // Helper: Check if text only contains URLs or mentions
+  isOnlyUrlsOrMentions(text) {
+    const words = text.split(/\s+/);
+    const meaningfulWords = words.filter(word => {
+      return !word.startsWith('@') && 
+             !word.startsWith('#') && 
+             !this.isUrl(word) &&
+             word.length > 2;
+    });
+    return meaningfulWords.length === 0;
   }
 
   async handleDobbyClick(editable, tweetContent, button) {
@@ -237,7 +340,7 @@ class DobbyTwitter {
       );
     } finally {
       setTimeout(() => {
-        button.innerHTML = 'Reply With Dobby';
+        button.innerHTML = 'Generate reply with Dobby';
         button.disabled = false;
         button.style.opacity = '1';
       }, 1500);
