@@ -1,4 +1,4 @@
-// Fixed Twitter Content Script - React-compatible version
+// Fixed Twitter Content Script - React-compatible version with improved toolbar positioning
 console.log('🧙‍♂️ Dobby content script loaded!', new Date().toISOString());
 
 class DobbyTwitter {
@@ -98,8 +98,18 @@ class DobbyTwitter {
     editable.dobbyButtonAdded = true;
     const dobbyButton = this.createDobbyButton(editable, tweetContent);
     const buttonContainer = this.findButtonContainer(editable);
-    if (buttonContainer) buttonContainer.appendChild(dobbyButton);
-    else editable.parentElement?.appendChild(dobbyButton);
+    
+    if (buttonContainer) {
+      // Insert at the beginning of the toolbar for better visibility
+      if (buttonContainer.firstChild) {
+        buttonContainer.insertBefore(dobbyButton, buttonContainer.firstChild);
+      } else {
+        buttonContainer.appendChild(dobbyButton);
+      }
+    } else {
+      // Fallback: create our own toolbar-like container
+      this.createFallbackToolbar(editable, dobbyButton);
+    }
   }
 
   createDobbyButton(editable, tweetContent) {
@@ -107,14 +117,56 @@ class DobbyTwitter {
     button.className = 'dobby-button';
     button.innerHTML = 'Generate reply with Dobby';
     button.title = 'Generate AI reply with Dobby';
+    
+    // Updated CSS to match extension theme - Clean white and blue, optimized for toolbar
     button.style.cssText = `
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none; border-radius: 20px; color: white; cursor: pointer;
-      font-size: 13px; font-weight: 600; margin: 0 8px; padding: 6px 12px;
-      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px;
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      border: 0 !important;
+      border-radius: 8px;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      margin: 0 4px 0 0;
+      padding: 6px 12px;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      z-index: 1000; position: relative;`;
+      z-index: 1000;
+      position: relative;
+      box-shadow: 0 1px 6px rgba(59, 130, 246, 0.2);
+      text-transform: none;
+      letter-spacing: 0.25px;
+      min-height: 32px;
+      max-height: 32px;
+      overflow: hidden;
+      white-space: nowrap;
+      flex-shrink: 0;
+      outline: none !important;
+      box-sizing: border-box;
+    `;
 
+    // Hover effects matching extension theme
+    button.addEventListener('mouseenter', () => {
+      if (!button.disabled) {
+        button.style.background = 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)';
+        button.style.transform = 'translateY(-1px)';
+        button.style.boxShadow = '0 2px 12px rgba(59, 130, 246, 0.3)';
+      }
+    });
+
+    button.addEventListener('mouseleave', () => {
+      if (!button.disabled) {
+        button.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)';
+        button.style.transform = 'translateY(0px)';
+        button.style.boxShadow = '0 1px 6px rgba(59, 130, 246, 0.2)';
+      }
+    });
+
+    // Click handler
     button.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -122,36 +174,112 @@ class DobbyTwitter {
       this.handleDobbyClick(liveEditable, tweetContent, button);
     });
 
-    button.addEventListener('mouseenter', () => {
-      if (!button.disabled) {
-        button.style.background = 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)';
-        button.style.transform = 'translateY(-1px)';
-        button.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
-      }
-    });
-    button.addEventListener('mouseleave', () => {
-      if (!button.disabled) {
-        button.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-        button.style.transform = 'none';
-        button.style.boxShadow = 'none';
-      }
-    });
-
     return button;
   }
 
   findButtonContainer(editable) {
-    let current = editable.parentElement,
-      attempts = 0;
-    while (current && attempts < 10) {
-      const toolbar =
-        current.querySelector('[data-testid="toolBar"]') ||
-        current.querySelector('[role="group"]');
-      if (toolbar) return toolbar;
+    let current = editable.parentElement;
+    let attempts = 0;
+    
+    // Enhanced toolbar detection for both free and premium accounts
+    while (current && attempts < 15) {
+      // Primary toolbar selectors (most common)
+      const primaryToolbar = current.querySelector('[data-testid="toolBar"]');
+      if (primaryToolbar) {
+        console.log('✅ Found primary toolbar');
+        return primaryToolbar;
+      }
+      
+      // Secondary toolbar selectors
+      const secondarySelectors = [
+        '[role="group"]',
+        '[data-testid="tweetButtonGroup"]',
+        '.css-1dbjc4n[role="group"]',
+        'div[role="group"][aria-label*="Tweet"]',
+        'div[role="group"][aria-label*="Reply"]'
+      ];
+      
+      for (const selector of secondarySelectors) {
+        const toolbar = current.querySelector(selector);
+        if (toolbar) {
+          // Validate this is actually a toolbar with buttons
+          const hasButtons = toolbar.querySelector('button') || 
+                           toolbar.querySelector('[role="button"]') ||
+                           toolbar.querySelector('[data-testid*="Button"]');
+          if (hasButtons) {
+            console.log(`✅ Found secondary toolbar with selector: ${selector}`);
+            return toolbar;
+          }
+        }
+      }
+      
+      // Look for toolbar-like containers (flex layouts with buttons)
+      const flexContainers = current.querySelectorAll('div[style*="flex"], .css-1dbjc4n');
+      for (const container of flexContainers) {
+        const buttonCount = container.querySelectorAll('button, [role="button"]').length;
+        if (buttonCount >= 2 && buttonCount <= 6) {
+          // Likely a toolbar
+          const rect = container.getBoundingClientRect();
+          if (rect.width > 100 && rect.height < 80) {
+            console.log('✅ Found flex toolbar container');
+            return container;
+          }
+        }
+      }
+      
       current = current.parentElement;
       attempts++;
     }
+    
+    // Fallback: look for any container with multiple buttons near the editable
+    const nearbyButtons = editable.parentElement?.parentElement?.querySelectorAll('button, [role="button"]');
+    if (nearbyButtons && nearbyButtons.length >= 2) {
+      const buttonParent = nearbyButtons[0].parentElement;
+      if (buttonParent) {
+        console.log('✅ Found fallback button container');
+        return buttonParent;
+      }
+    }
+    
+    console.log('⚠️ No toolbar found, will use fallback');
     return null;
+  }
+
+  createFallbackToolbar(editable, dobbyButton) {
+    // Create a toolbar-like container as fallback
+    const fallbackToolbar = document.createElement('div');
+    fallbackToolbar.className = 'dobby-fallback-toolbar';
+    fallbackToolbar.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 8px 0;
+      margin-top: 8px;
+      gap: 8px;
+    `;
+    
+    fallbackToolbar.appendChild(dobbyButton);
+    
+    // Insert after the editable element's container
+    let insertTarget = editable.parentElement;
+    let attempts = 0;
+    
+    // Find a good insertion point
+    while (insertTarget && attempts < 10) {
+      if (insertTarget.nextSibling) {
+        insertTarget.parentElement.insertBefore(fallbackToolbar, insertTarget.nextSibling);
+        console.log('✅ Created fallback toolbar');
+        return;
+      }
+      insertTarget = insertTarget.parentElement;
+      attempts++;
+    }
+    
+    // Last resort: append to the parent
+    if (editable.parentElement) {
+      editable.parentElement.appendChild(fallbackToolbar);
+      console.log('✅ Created fallback toolbar (last resort)');
+    }
   }
 
   extractTweetContent(editable) {
@@ -319,31 +447,51 @@ class DobbyTwitter {
 
   async handleDobbyClick(editable, tweetContent, button) {
     if (button.disabled) return;
+    
+    // Update button state with matching theme
     button.disabled = true;
-    button.style.opacity = '0.7';
-    button.innerHTML = '🔮 Typing...';
+    button.style.background = '#f3f4f6';
+    button.style.color = '#6b7280';
+    button.style.cursor = 'not-allowed';
+    button.style.transform = 'none';
+    button.style.boxShadow = 'none';
+    button.innerHTML = '🔮 Generating...';
 
     try {
       const content = this.extractTweetContent(editable) || tweetContent;
       const reply = await this.generateReply(content);
       await this.typeReplyLikeHuman(editable, reply);
-      button.innerHTML = '✨ Typed!';
+      
+      // Success state
+      button.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+      button.style.color = '#ffffff';
+      button.innerHTML = '✅ Reply Generated!';
+      
       await this.updateStats();
       console.log('✅ Reply typed successfully');
     } catch (error) {
       console.error('❌ Error generating/typing reply:', error);
+      
+      // Error state
+      button.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+      button.style.color = '#ffffff';
       button.innerHTML = '❌ Error';
+      
       alert(
         error.message.includes('API')
           ? 'Error: Please check your Fireworks API key in the extension popup'
           : 'Error generating reply. Please try again.'
       );
     } finally {
+      // Reset button after delay
       setTimeout(() => {
         button.innerHTML = 'Generate reply with Dobby';
         button.disabled = false;
-        button.style.opacity = '1';
-      }, 1500);
+        button.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)';
+        button.style.color = '#ffffff';
+        button.style.cursor = 'pointer';
+        button.style.boxShadow = '0 1px 6px rgba(59, 130, 246, 0.2)';
+      }, 2000);
     }
   }
 

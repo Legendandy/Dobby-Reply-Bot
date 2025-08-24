@@ -2,36 +2,62 @@
 <html>
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="popup.css">
+    <title>Dobby Tweeter</title>
 </head>
 <body>
     <div class="popup-container">
         <div class="header">
-            <h1>🧙‍♂️ Dobby Settings</h1>
+            <h1>🐶</h1>
         </div>
         
         <div class="content">
             <div class="api-section">
-                <label for="api-key">Fireworks API Key:</label>
-                <input type="password" id="api-key" placeholder="Enter your API key">
-                <button id="save-key">Save</button>
+                <label for="api-key">🔑 Fireworks API Key</label>
+                <div class="input-container">
+                    <input type="password" id="api-key" placeholder="Enter your secret API key...">
+                </div>
+                <div class="button-row">
+                    <button id="save-key">
+                        <span>💾 Save API Key</span>
+                    </button>
+                    <button type="button" class="toggle-btn" id="toggle-password">
+                        Toggle
+                    </button>
+                </div>
             </div>
             
             <div class="status-section">
                 <div id="status-indicator" class="status-dot offline"></div>
-                <span id="status-text">Not configured</span>
+                <span id="status-text">🔧 Not configured</span>
             </div>
             
             <div class="info-section">
-                <p>Get your API key from <a href="https://fireworks.ai" target="_blank">fireworks.ai</a></p>
-                <p>Dobby will help you craft perfect Twitter replies!</p>
+                <h4>📖 How to Use Dobby Tweeter to reply tweets:</h4>
+                <ol>
+                    <li>Add your <a href="https://fireworks.ai" target="_blank">Fireworks</a> API key above</li>
+                    <li>Go to the X/Twitter tweet you want to reply</li>
+                    <li>Open the tweet</li>
+                    <li>Look for "<strong>generate reply with dobby</strong>" in the comment box</li>
+                    <li>Click to generate reply and edit to your taste</li>
+                </ol>
             </div>
             
             <div class="stats-section">
-                <h3>Usage Stats</h3>
-                <p>Replies generated: <span id="reply-count">0</span></p>
-                <button id="reset-stats">Reset</button>
+                <h3>📊 Usage Statistics</h3>
+                <p>
+                    <span>Replies generated:</span>
+                    <span id="reply-count">0</span>
+                </p>
+                <button id="reset-stats">
+                    <span>🔄 Reset Statistics</span>
+                </button>
             </div>
+        </div>
+        
+        <div class="footer">
+            Made with ❤️ by <a href="https://x.com/_hadeelen" target="_blank">Legendandy</a>
         </div>
     </div>
     

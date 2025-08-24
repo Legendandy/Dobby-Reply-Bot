@@ -1,7 +1,8 @@
-// Fixed popup functionality
+// Updated popup functionality with toggle
 document.addEventListener('DOMContentLoaded', async function() {
     const apiKeyInput = document.getElementById('api-key');
     const saveButton = document.getElementById('save-key');
+    const toggleButton = document.getElementById('toggle-password');
     const statusDot = document.getElementById('status-indicator');
     const statusText = document.getElementById('status-text');
     const replyCount = document.getElementById('reply-count');
@@ -12,12 +13,23 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     if (result.dobbyApiKey) {
         apiKeyInput.value = result.dobbyApiKey;
-        updateStatus(true, 'API Key configured');
+        updateStatus(true, '✅ API Key configured');
     }
 
     if (result.dobbyStats) {
         replyCount.textContent = result.dobbyStats.repliesGenerated || 0;
     }
+
+    // Toggle password visibility
+    toggleButton.addEventListener('click', function() {
+        if (apiKeyInput.type === 'password') {
+            apiKeyInput.type = 'text';
+            toggleButton.textContent = 'Hide';
+        } else {
+            apiKeyInput.type = 'password';
+            toggleButton.textContent = 'Toggle';
+        }
+    });
 
     // Save API key
     saveButton.addEventListener('click', async function() {
@@ -30,14 +42,14 @@ document.addEventListener('DOMContentLoaded', async function() {
 
         try {
             // Test the API key
-            saveButton.textContent = 'Testing...';
+            saveButton.innerHTML = '<span>🔄 Testing...</span>';
             saveButton.disabled = true;
 
             const isValid = await testApiKey(apiKey);
             
             if (isValid) {
                 await chrome.storage.sync.set({ dobbyApiKey: apiKey });
-                updateStatus(true, 'API Key saved successfully!');
+                updateStatus(true, '✅ API Key saved successfully!');
                 
                 // Safely notify content script (don't wait for response)
                 try {
@@ -56,12 +68,12 @@ document.addEventListener('DOMContentLoaded', async function() {
                     console.log('Tab communication failed, but API key saved to storage');
                 }
             } else {
-                updateStatus(false, 'Invalid API key');
+                updateStatus(false, '❌ Invalid API key');
             }
         } catch (error) {
-            updateStatus(false, 'Error testing API key');
+            updateStatus(false, '⚠️ Error testing API key');
         } finally {
-            saveButton.textContent = 'Save';
+            saveButton.innerHTML = '<span>💾 Save API Key</span>';
             saveButton.disabled = false;
         }
     });

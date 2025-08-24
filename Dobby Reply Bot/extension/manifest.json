@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Dobby - AI Twitter Replies",
+  "name": "Dobby Tweeter",
   "version": "1.0.0",
-  "description": "Dobby helps you craft perfect Twitter replies with AI",
+  "description": "Dobby Tweeter helps you craft perfect Twitter replies with AI",
   
   "permissions": [
     "storage",
